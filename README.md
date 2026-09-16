@@ -1,19 +1,17 @@
-# newapi-give-to-use
+# newapi-give-and-take
 
-Contribute API channels. Earn credits as they are used.
+Contribute channels. Earn balance. Access LLM services.
 
-**newapi-give-to-use** is an independent companion project for new-api that lets users contribute API channels in exchange for credits they can use on the platform. It supports a community where members provide access to AI services and earn access in return.
+**newapi-give-and-take** is an independent project that works with new-api to let users contribute channels and earn balance from their usage. Users can spend that balance on LLM services through new-api.
 
-## Give to Use
+## Give and Take
 
-When a contributed channel is used, its contributor receives wallet credits equal to the consumption recorded by new-api, at a **1:1 ratio**. Rewards are based on actual channel consumption, rather than the channel's advertised capacity or upstream provider costs.
+- **Contribute a channel:** Share a channel for use through new-api.
+- **Earn balance:** Receive rewards based on the contributed channel's actual consumption recorded by new-api.
+- **Use your balance:** Spend the earned balance on LLM services through new-api.
 
-- **Contribute a channel:** Make an API channel available for use through new-api.
-- **Earn credits:** Receive matching wallet credits as that channel records consumption, including consumption funded by subscriptions.
-- **Use your credits:** Spend the earned balance on services available to your account through new-api.
+## Rewards
 
-A contributor's own use of their channel also earns matching credits, offsetting the platform charge for that usage. If recorded channel consumption is reduced by a refund or adjustment, the corresponding reward is reduced as well.
+Rewards are based on recorded channel consumption, rather than advertised capacity or upstream provider costs. Eligible consumption includes requests funded by subscriptions and a contributor's own requests when served by their contributed channel.
 
-## Shared Access, Matched Contributions
-
-The idea is simple: the more usage your channels provide, the more usage you earn in return. Contributions become usable balance, helping members exchange access to AI services according to what they provide.
+If a refund or adjustment reduces recorded channel consumption, the corresponding reward is reduced as well.
