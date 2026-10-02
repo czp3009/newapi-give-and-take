@@ -10,22 +10,25 @@ import kotlin.test.assertNull
 
 /** Tests for the pagination logic and argument validation of [NewApiClient]. */
 class NewApiClientTest {
-
-    private fun channelList(items: List<JsonObject>, total: Long, page: Int, pageSize: Int): JsonObject =
-        buildJsonObject {
-            put("success", true)
-            put("message", "")
-            put(
-                "data",
-                buildJsonObject {
-                    put("items", JsonArray(items))
-                    put("total", total)
-                    put("page", page)
-                    put("page_size", pageSize)
-                    putJsonObject("type_counts") {}
-                },
-            )
-        }
+    private fun channelList(
+        items: List<JsonObject>,
+        total: Long,
+        page: Int,
+        pageSize: Int,
+    ): JsonObject = buildJsonObject {
+        put("success", true)
+        put("message", "")
+        put(
+            "data",
+            buildJsonObject {
+                put("items", JsonArray(items))
+                put("total", total)
+                put("page", page)
+                put("page_size", pageSize)
+                putJsonObject("type_counts") {}
+            },
+        )
+    }
 
     private fun client(engine: MockEngine): NewApiClient = NewApiClient.create(
         NewApiConfig("https://newapi.example.com/", "admin-token"),
@@ -34,7 +37,6 @@ class NewApiClientTest {
 
     @Test
     fun testListAllChannelsIteratesAllPages() = runTest {
-        // total = 3 with page size 2 -> two pages (2 + 1 items).
         val engine = MockEngine { request ->
             assertEquals("/api/channel/", request.url.encodedPath)
             val page = request.url.parameters["p"]!!.toInt()
@@ -69,13 +71,11 @@ class NewApiClientTest {
         assertEquals(listOf(1, 2, 3), channels.map { it.id })
         assertEquals(listOf(100L, 200L, 300L), channels.map { it.usedQuota })
         assertEquals(listOf("contributor:1", "contributor:2", "contributor:3"), channels.map { it.tag })
-        // Exactly two requests: one per page.
         assertEquals(2, engine.requestHistory.size)
     }
 
     @Test
     fun testListAllChannelsStopsOnZeroTotal() = runTest {
-        // No channel at all: the first page is already the last page.
         val engine = MockEngine { _ -> respondJson(channelList(emptyList(), total = 0, page = 1, pageSize = 100)) }
 
         assertEquals(emptyList(), client(engine).listAllChannels())
@@ -84,7 +84,6 @@ class NewApiClientTest {
 
     @Test
     fun testListAllChannelsMakesSingleRequestWhenOnLastPage() = runTest {
-        // total = 2 with page size 2: the first page is the last page.
         val engine = MockEngine { _ ->
             respondJson(
                 channelList(
@@ -114,7 +113,7 @@ class NewApiClientTest {
                     listOf(newApiChannel(1, 100), newApiChannel(2, 200)),
                     total = 10,
                     page = 1,
-                    pageSize = 2
+                    pageSize = 2,
                 )
 
                 2 -> channelList(listOf(newApiChannel(3, 300)), total = 10, page = 2, pageSize = 2)

@@ -13,13 +13,11 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 /**
- * Tests for the channel endpoint, with a MockEngine simulating the new-api
- * server. The response structure mirrors new-api `controller/channel.go` ->
- * `GetAllChannels`.
+ * Tests for channel requests, response parsing, pagination termination and
+ * error propagation using [MockEngine].
  */
 class NewApiTest {
-
-    /** A full channel as serialized by new-api's `model.Channel`. */
+    /** Channel fixture with modeled fields and additional fields that the client must ignore. */
     private val fullChannel: JsonObject = buildJsonObject {
         put("id", 42)
         put("type", 1)
@@ -69,7 +67,7 @@ class NewApiTest {
         total: Long,
         page: Int,
         pageSize: Int,
-        typeCounts: JsonObject = buildJsonObject { },
+        typeCounts: JsonObject = buildJsonObject {},
     ): JsonObject = buildJsonObject {
         put("items", JsonArray(items))
         put("total", total)
@@ -87,15 +85,12 @@ class NewApiTest {
     @Test
     fun testGetChannelsSendsCorrectRequestAndParsesDetails() = runTest {
         val engine = MockEngine { request ->
-            // Verify the request: path (registered in gin as GET /api/channel/,
-            // with trailing slash), auth header and query parameters.
             assertEquals("/api/channel/", request.url.encodedPath)
             assertEquals("Bearer admin-token", request.headers[HttpHeaders.Authorization])
             assertEquals("1", request.url.parameters["p"])
             assertEquals("100", request.url.parameters["page_size"])
             assertEquals("id", request.url.parameters["sort_by"])
             assertEquals("asc", request.url.parameters["sort_order"])
-            // Unused filters must not appear in the query string.
             assertNull(request.url.parameters["status"])
             assertNull(request.url.parameters["type"])
             assertNull(request.url.parameters["group"])
@@ -114,7 +109,6 @@ class NewApiTest {
             )
         }
 
-        // The raw endpoint is reachable through delegation from NewApiClient.
         val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
 
         val data = api.listChannels(page = 1, pageSize = 100, sortBy = "id", sortOrder = "asc").data!!
@@ -124,12 +118,9 @@ class NewApiTest {
         assertEquals(100, data.pageSize)
         assertEquals(mapOf("1" to 1L), data.typeCounts)
 
-        // Only the modeled fields are readable; the rest of the server
-        // payload above is ignored.
         val channel = data.items.single()
         assertEquals(42, channel.id)
         assertEquals("openai-main", channel.name)
-        // The fields this project cares about.
         assertEquals("contributor:alice", channel.tag)
         assertEquals("由 Alice 贡献", channel.remark)
         assertEquals(123456789L, channel.usedQuota)
@@ -169,9 +160,6 @@ class NewApiTest {
 
     @Test
     fun testGetChannelsMissingRequiredFieldThrows() = runTest {
-        // Required fields are never omitted by the server (no `omitempty` in
-        // Go), so a missing one is a schema mismatch and must fail loudly
-        // instead of falling back to a default.
         val channelWithoutName = JsonObject(newApiChannel(id = 5, usedQuota = 7) - "name")
         val engine = MockEngine { _ ->
             respondJson(
@@ -202,7 +190,6 @@ class NewApiTest {
 
     @Test
     fun testMissingDataIsTreatedAsEmptyPage() = runTest {
-        // success=true but no data at all.
         val engine = MockEngine { _ -> respondJson(successResponse()) }
 
         val client = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
@@ -213,8 +200,7 @@ class NewApiTest {
 
     @Test
     fun testHttpLevelErrorThrows() = runTest {
-        // A non-2xx response (e.g. from a reverse proxy in front of new-api)
-        // is an HTTP level error, not a business envelope.
+        // HTTP errors must propagate even when the body is plain text.
         val engine = MockEngine { _ ->
             respond(
                 content = "bad gateway",

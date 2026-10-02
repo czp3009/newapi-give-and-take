@@ -9,52 +9,59 @@ import kotlinx.serialization.json.JsonElement
 /**
  * Endpoints of the new-api admin API used by this tool.
  *
- * Methods return the raw response envelope and rely on the official kotlinx
- * serialization converter of the HTTP client (see [NewApiClient.create]).
- * Business failures (`success=false`) throw [NewApiException] through a
- * response interceptor; [NewApiClient.listAllChannels] unwraps the `data`
- * part.
+ * Methods return response envelopes; see [NewApiClient.create] for error handling.
  */
 interface NewApi {
     /**
      * List channels page by page (admin permission required).
      *
-     * Endpoint: `GET /api/channel/` (see new-api `controller/channel.go` ->
-     * `GetAllChannels`). Every item is the full channel detail (including tag /
-     * remark / used_quota); the server never returns the key field. The server
-     * caps `page_size` at 100.
+     * Endpoint: `GET /api/channel/`. Each item exposes the fields in [Channel].
+     * Arguments are forwarded without local validation. Null optional arguments
+     * are omitted from the query, leaving their behavior to the server.
      *
      * @param page Page number, starting at 1 (query parameter `p`).
-     * @param pageSize Page size, max 100.
-     * @param status Status filter: "enabled" / "disabled"; null for all.
-     * @param type Channel type filter; null for all.
-     * @param group Channel group filter; null for all.
+     * @param pageSize Requested page size; [NewApiClient.listAllChannels] accepts 1 through 100.
+     * @param status Status filter, such as `enabled` or `disabled`.
+     * @param type Channel type filter.
+     * @param group Channel group filter.
      * @param tagMode Tag aggregation mode: aggregate channels by tag.
      * @param idSort Sort by channel id descending (legacy parameter).
-     * @param sortBy Sort field: id / name / priority / balance / response_time / test_time.
-     * @param sortOrder Sort direction: asc / desc.
+     * @param sortBy Requested sort field, such as `id` or `priority`.
+     * @param sortOrder Requested sort direction: `asc` or `desc`.
      */
     @GET("api/channel/")
     suspend fun listChannels(
-        @Query("p") page: Int,
-        @Query("page_size") pageSize: Int,
-        @Query("status") status: String? = null,
-        @Query("type") type: Int? = null,
-        @Query("group") group: String? = null,
-        @Query("tag_mode") tagMode: Boolean? = null,
-        @Query("id_sort") idSort: Boolean? = null,
-        @Query("sort_by") sortBy: String? = null,
-        @Query("sort_order") sortOrder: String? = null,
+        @Query("p")
+        page: Int,
+        @Query("page_size")
+        pageSize: Int,
+        @Query("status")
+        status: String? = null,
+        @Query("type")
+        type: Int? = null,
+        @Query("group")
+        group: String? = null,
+        @Query("tag_mode")
+        tagMode: Boolean? = null,
+        @Query("id_sort")
+        idSort: Boolean? = null,
+        @Query("sort_by")
+        sortBy: String? = null,
+        @Query("sort_order")
+        sortOrder: String? = null,
     ): ApiResponse<ChannelListData>
 
     /**
      * Perform a user management action (admin permission required).
      *
-     * Endpoint: `POST /api/user/manage` (see new-api `controller/user.go` ->
-     * `ManageUser`). To adjust quota the body is
-     * `{"id": <userId>, "action": "add_quota", "mode": "add", "value": <quota>}`.
-     * On business success the response carries no data, so `data` stays null.
+     * Endpoint: `POST /api/user/manage`. [ManageUserRequest] defaults to
+     * [MANAGE_ACTION_ADD_QUOTA] with [QuotaAdjustMode.ADD]. Response `data`
+     * is retained as JSON when present and is null when absent or explicitly null.
+     * Do not blindly retry quota adjustments after an uncertain response.
      */
     @POST("api/user/manage")
-    suspend fun manageUser(@Body request: ManageUserRequest): ApiResponse<JsonElement>
+    suspend fun manageUser(
+        @Body
+        request: ManageUserRequest,
+    ): ApiResponse<JsonElement>
 }

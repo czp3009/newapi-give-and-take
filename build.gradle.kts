@@ -21,10 +21,26 @@ kotlin {
 
     // The JVM target mainly exists to run the common tests quickly.
     jvm()
-    mingwX64 { binaries.executable { entryPoint = mainEntryPoint } }
-    linuxArm64 { binaries.executable { entryPoint = mainEntryPoint } }
-    linuxX64 { binaries.executable { entryPoint = mainEntryPoint } }
-    macosArm64 { binaries.executable { entryPoint = mainEntryPoint } }
+    mingwX64 {
+        binaries.executable {
+            entryPoint = mainEntryPoint
+        }
+    }
+    linuxArm64 {
+        binaries.executable {
+            entryPoint = mainEntryPoint
+        }
+    }
+    linuxX64 {
+        binaries.executable {
+            entryPoint = mainEntryPoint
+        }
+    }
+    macosArm64 {
+        binaries.executable {
+            entryPoint = mainEntryPoint
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -47,9 +63,8 @@ kotlin {
     }
 }
 
-// Cross-host KLIB compilation is portable, but final linking can consume target-native libraries (for example the
-// Ktor Curl engine) whose toolchains are incompatible with the current host. Final binaries are therefore built on
-// their own host.
+// Link only when both the target OS and architecture match the current host.
+// Native dependencies such as the Curl engine need a compatible toolchain for final linking.
 tasks.withType<KotlinNativeLink>().configureEach {
     if (binary.target.konanTarget != nativeHost) {
         onlyIf("the Kotlin/Native binary target matches the current host") { false }

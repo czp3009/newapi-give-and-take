@@ -2,7 +2,8 @@
 
 ## Project Structure & Module Organization
 
-Kotlin Multiplatform integration rewards contributed new-api channels; packages use `com.hiczp.newapi.giveandtake`.
+Kotlin Multiplatform client for new-api channel listing and user quota management; packages use
+`com.hiczp.newapi.giveandtake`. Reward processing is not implemented.
 
 - `src/commonMain/kotlin/`: entry point, shared logic, Ktorfit interfaces and serializable API models.
 - `src/jvmMain/kotlin/`: CIO HTTP engine; `src/nativeMain/kotlin/`: Curl engine.
@@ -11,6 +12,8 @@ Kotlin Multiplatform integration rewards contributed new-api channels; packages 
 
 Keep generated outputs in `build/`; never edit or commit them. Preserve the default KMP hierarchy and standard
 target/task wiring. Keep platform dependencies outside common source sets.
+
+Do not modify hook scripts, including files under `.codex/hooks/`, even during formatting or documentation cleanup.
 
 ## Language & Documentation
 
@@ -27,13 +30,14 @@ Use the Gradle wrapper with JDK 25:
 - `.\gradlew.bat linkDebugExecutableMingwX64`: build Windows executable.
 - `.\gradlew.bat runDebugExecutableMingwX64`: run it locally.
 
-Targets cover Windows x64, Linux x64/ARM64 and macOS ARM64; final linking requires the matching host. `Main.kt` is a
-placeholder.
+Targets cover Windows x64, Linux x64/ARM64 and macOS ARM64; final link tasks run only when both the target OS and
+architecture match the host. `Main.kt` is an empty placeholder.
 
 ## Coding Style & Naming Conventions
 
 - Use four-space indentation, PascalCase types/files, camelCase functions/properties and UPPER_SNAKE_CASE constants. Use
-  multiline trailing commas and KDoc for public contracts.
+  multiline trailing commas. Keep existing comments and KDoc accurate and concise; remove redundant explanations. Add
+  documentation to previously undocumented code only when it explains an important contract or non-obvious behavior.
 - Separate functions with blank lines; place annotations and statements on separate lines. Prefer imports, using aliases
   for conflicts. Use raw strings for multiline text.
 - Prefer Kotlin/kotlinx and existing libraries. Keep portable logic in `commonMain`; use `expect`/`actual` only for

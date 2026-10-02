@@ -3,16 +3,13 @@ package com.hiczp.newapi.giveandtake.api
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Request body of `POST api/user/manage`. */
+/** Request body of `POST /api/user/manage`; values are sent without local validation. */
 @Serializable
 data class ManageUserRequest(
-    /** Target user id. */
     val id: Int,
-    /** Manage action; defaults to "add_quota" ([MANAGE_ACTION_ADD_QUOTA]) for quota adjustments. */
     val action: String = MANAGE_ACTION_ADD_QUOTA,
-    /** How the quota value is applied. */
     val mode: QuotaAdjustMode = QuotaAdjustMode.ADD,
-    /** Adjustment value; must be positive for add/subtract. */
+    /** Adjustment value in integer quota units; validity is checked by the server. */
     val value: Long,
 )
 

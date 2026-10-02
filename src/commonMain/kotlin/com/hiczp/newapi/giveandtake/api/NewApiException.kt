@@ -1,13 +1,10 @@
 package com.hiczp.newapi.giveandtake.api
 
 /**
- * Thrown when the new-api server reports a business failure: an HTTP 200
- * response whose envelope carries `success=false` (and an error `message`).
+ * A business failure reported in a 2xx response envelope with `success=false`.
  *
- * Detected centrally by a response interceptor installed on the HTTP client
- * (see [NewApiClient.create]), so every request through [NewApi] fails with
- * this exception instead of silently returning an envelope without data.
- * HTTP level failures are reported as Ktor's
- * [io.ktor.client.plugins.ResponseException] via `ExpectSuccess` instead.
+ * Clients created by [NewApiClient.create] throw this from a response interceptor.
+ * Nonblank server messages are preserved; blank messages are replaced with
+ * `new-api request failed`.
  */
 class NewApiException(message: String) : Exception(message)

@@ -1,6 +1,3 @@
-### Example user template template
-### Example user template
-
 # IntelliJ project files
 .idea
 *.iml
@@ -15,7 +12,7 @@ gen
 # Ignore Gradle GUI config
 gradle-app.setting
 
-# Avoid ignore Gradle wrappper properties
+# Keep Gradle wrapper properties in version control
 !gradle-wrapper.properties
 
 # Cache of project

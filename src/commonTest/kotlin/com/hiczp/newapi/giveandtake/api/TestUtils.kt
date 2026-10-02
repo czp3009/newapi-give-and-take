@@ -6,7 +6,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.serialization.json.*
 
-/** Respond with a JSON body, the way the new-api server does. */
+/** Respond with HTTP 200 and a JSON body. */
 fun MockRequestHandleScope.respondJson(content: JsonElement) = respondJson(content.toString())
 
 fun MockRequestHandleScope.respondJson(content: String) = respond(
@@ -28,8 +28,8 @@ fun failureResponse(message: String): JsonObject = buildJsonObject {
 }
 
 /**
- * A channel object containing every field the server serializes; the client
- * model only maps a subset, the rest must be ignored.
+ * A channel fixture containing all modeled fields and additional response fields
+ * that the client must ignore.
  */
 fun newApiChannel(
     id: Int,
@@ -64,7 +64,6 @@ fun newApiChannel(
     put("param_override", JsonNull)
     put("header_override", JsonNull)
     put("remark", remark)
-    // multi_key_disabled_reason / multi_key_disabled_time are `omitempty` in Go.
     put(
         "channel_info",
         buildJsonObject {

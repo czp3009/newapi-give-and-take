@@ -10,12 +10,9 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
- * Tests for the user quota endpoint, with a MockEngine simulating the new-api
- * server. The endpoint is defined in new-api `controller/user.go` ->
- * `ManageUser` (action="add_quota").
+ * Tests for user quota request serialization and business errors using [MockEngine].
  */
 class UserApiTest {
-
     private fun client(engine: MockEngine): NewApiClient = NewApiClient.create(
         NewApiConfig("https://newapi.example.com/", "admin-token"),
         engine,
@@ -27,8 +24,7 @@ class UserApiTest {
             assertEquals(HttpMethod.Post, request.method)
             assertEquals("/api/user/manage", request.url.encodedPath)
             assertEquals("Bearer admin-token", request.headers[HttpHeaders.Authorization])
-            // ContentNegotiation moves the content type onto the outgoing
-            // content; Ktor merges it back into the wire headers when sending.
+            // The serialized outgoing body carries the JSON content type.
             assertTrue(request.body.contentType.toString().startsWith("application/json"))
 
             // Verify the request body JSON (key order insensitive).
@@ -56,14 +52,13 @@ class UserApiTest {
     }
 
     @Test
-    fun testManageUserSerializesAllQuotaAdjustModes() = runTest {
+    fun testManageUserSerializesSubtractAndOverrideModes() = runTest {
         val bodies = mutableListOf<JsonElement>()
         val engine = MockEngine { request ->
             bodies += Json.parseToJsonElement(request.bodyAsText())
             respondJson(successResponse())
         }
 
-        // The raw endpoint is reachable through delegation from NewApiClient.
         val client = client(engine)
 
         client.manageUser(ManageUserRequest(id = 7, mode = QuotaAdjustMode.SUBTRACT, value = 5))
@@ -79,8 +74,14 @@ class UserApiTest {
 
     @Test
     fun testBusinessErrorWithBlankMessageFallsBackToDefault() = runTest {
-        // success=false with a blank message.
-        val engine = MockEngine { _ -> respondJson(buildJsonObject { put("success", false); put("message", "") }) }
+        val engine = MockEngine { _ ->
+            respondJson(
+                buildJsonObject {
+                    put("success", false)
+                    put("message", "")
+                },
+            )
+        }
 
         val exception =
             assertFailsWith<NewApiException> { client(engine).manageUser(ManageUserRequest(id = 7, value = 100)) }
