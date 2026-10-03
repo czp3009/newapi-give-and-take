@@ -210,9 +210,9 @@ jobs:
           tag=latest
           if [[ "$RELEASE_VERSION" == *-* ]]; then tag=next; fi
           for target in linux_x64 macos_arm64 mingw_x64; do
-            npm publish "packages/newapi-give-and-take-${target}-${RELEASE_VERSION}.tgz" --access public --tag "$tag" --registry https://registry.npmjs.org
+            npm publish "./packages/newapi-give-and-take-${target}-${RELEASE_VERSION}.tgz" --access public --tag "$tag" --registry https://registry.npmjs.org
           done
-          npm publish "packages/newapi-give-and-take-${RELEASE_VERSION}.tgz" --access public --tag "$tag" --registry https://registry.npmjs.org
+          npm publish "./packages/newapi-give-and-take-${RELEASE_VERSION}.tgz" --access public --tag "$tag" --registry https://registry.npmjs.org
 
   github:
     if: inputs.github
