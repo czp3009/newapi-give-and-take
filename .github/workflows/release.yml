@@ -28,7 +28,7 @@ jobs:
   validate:
     runs-on: ubuntu-24.04
     permissions:
-      contents: read
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -77,6 +77,23 @@ jobs:
         run: |
           if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
             echo "::error::Configure the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets before publishing."
+            exit 1
+          fi
+      - name: Create release tag
+        if: inputs.github
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          tag="v${RELEASE_VERSION}"
+          tag_ref=$(gh api "repos/$GH_REPO/git/matching-refs/tags/$tag" --jq ".[] | select(.ref == \"refs/tags/$tag\") | .ref")
+          if [ -z "$tag_ref" ]; then
+            gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$RELEASE_COMMIT" > /dev/null
+          elif [ "$(gh api "repos/$GH_REPO/commits/$tag" --jq .sha)" != "$RELEASE_COMMIT" ]; then
+            echo "::error::Tag $tag does not point to release commit $RELEASE_COMMIT."
             exit 1
           fi
 
@@ -221,12 +238,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_COMMIT: ${{ github.sha }}
         shell: bash
         run: |
           args=()
           if [[ "$RELEASE_VERSION" == *-* ]]; then args+=(--prerelease); fi
-          gh release create "v${RELEASE_VERSION}" assets/* --target "$RELEASE_COMMIT" --title "v${RELEASE_VERSION}" --generate-notes "${args[@]}"
+          gh release create "v${RELEASE_VERSION}" assets/* --verify-tag --title "v${RELEASE_VERSION}" --generate-notes "${args[@]}"
 
   docker:
     if: inputs.docker

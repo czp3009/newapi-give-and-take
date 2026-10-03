@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  # The shared workflow declares an optional GitHub release job; active npm jobs use contents: read.
   contents: write
 
 jobs:
