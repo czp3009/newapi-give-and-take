@@ -1,0 +1,16 @@
+name: docker-release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  # The shared workflow declares an optional GitHub release job; active Docker jobs use contents: read.
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      docker: true
+    # Configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets before publishing.
+    secrets: inherit

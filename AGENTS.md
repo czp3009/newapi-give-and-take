@@ -13,6 +13,10 @@ Kotlin Multiplatform application for rewarding contributed new-api channels; pac
 - `src/commonTest/kotlin/`: application, matching, file and API tests, with shared test helpers.
 - `src/mingwX64Test/kotlin/`: Windows environment-variable tests.
 - `gradle/libs.versions.toml`: dependencies/plugins; `build.gradle.kts`: targets/build configuration.
+- `buildSrc/src/main/kotlin/`: the single project version constant in `BuildConfig` and the `PrintVersion` task used by
+  CI.
+- `.github/workflows/`: manual release entry points and their shared native build/publish workflow.
+- `Dockerfile` and `docker/`: Linux x64 runtime image and its once/cron entry point.
 
 Keep generated outputs in `build/`; never edit or commit them. Preserve the default KMP hierarchy and standard
 target/task wiring. Keep platform dependencies outside common source sets.
@@ -54,6 +58,26 @@ architecture match the host. The JVM target primarily supports shared tests. Run
 new-api instance; use mock tests for offline validation.
 
 If a build fails because of stale caches or generated outputs, try `gradle clean` through the wrapper before rebuilding.
+
+The Kotlin/Native npm publishing plugin packages release executables. Maintain the project version only in
+`BuildConfig.VERSION`; release workflows read it with `./gradlew --quiet printVersion`. `npmRegistry` selects a registry
+for local publishing tests. Keep local publication tests on a temporary loopback registry;
+use `--help` to validate the launcher without contacting new-api. Release workflows build on matching hosts, cache
+Gradle
+and Kotlin/Native separately, and publish all npm platform packages before the main package.
+
+Docker releases reuse the Linux release executable; `all-release` includes Docker Hub. Use a small glibc-based image and
+the distribution's foreground cron daemon. Keep runtime defaults in the entry point, do not configure a timezone in the
+image, and store generated cron/job files under `/root/newapi-give-and-take`. Preserve Docker environment variables for
+cron jobs and route program output to container logs. Keep the Kotlin application as a single pass.
+Docker requires all four configuration environment variables and uses fixed paths:
+`/root/newapi-give-and-take/config.json`
+and `/root/newapi-give-and-take/data/state.json`. The entry point does not forward command-line arguments or offer path
+overrides. Persist `/root/newapi-give-and-take/data`; keep other generated application files in
+`/root/newapi-give-and-take`.
+Persist directories rather than individual state files so atomic replacement works. Inspect packaged Docker images
+locally, manually or through agent
+assistance, without contacting new-api; do not add container verification to release workflows.
 
 ## Coding Style & Naming Conventions
 

@@ -1,0 +1,16 @@
+name: npm-release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  # The shared workflow declares an optional GitHub release job; active npm jobs use contents: read.
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      npm: true
+    # Configure the repository's NPM_TOKEN secret with permission to publish the npm packages.
+    secrets: inherit

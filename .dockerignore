@@ -1,0 +1,4 @@
+**
+!Dockerfile
+!docker/entrypoint.sh
+!build/bin/linuxX64/releaseExecutable/newapi-give-and-take.kexe

@@ -6,10 +6,13 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktorfit)
+    alias(libs.plugins.kotlinNativeNpmPublishing)
 }
 
 group = "com.hiczp"
-version = "0.0.1"
+version = BuildConfig.VERSION
+
+tasks.register<PrintVersion>("printVersion")
 
 val nativeHost = HostManager.host
 
@@ -60,6 +63,18 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}
+
+kotlinNativeNpmPublishing {
+    description.set("Reward new-api users based on the usage of their contributed channels")
+    repository.set("https://github.com/czp3009/newapi-give-and-take")
+    access.set("public")
+    registry.set(providers.gradleProperty("npmRegistry"))
+    stage {
+        main {
+            readme()
         }
     }
 }
