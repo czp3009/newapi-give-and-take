@@ -9,8 +9,15 @@ When run, the program reads the channel list from new-api and adds balance to as
 
 ### Install
 
-Download the archive for Linux x64, macOS ARM64 or Windows x64
-from [GitHub Releases](https://github.com/czp3009/newapi-give-and-take/releases) and extract it.
+Download the executable for Linux x64, macOS ARM64 or Windows x64
+from [GitHub Releases](https://github.com/czp3009/newapi-give-and-take/releases). Rename it to
+`newapi-give-and-take.kexe` on Linux/macOS or `newapi-give-and-take.exe` on Windows.
+
+On Linux/macOS, grant execution permission:
+
+```bash
+chmod +x newapi-give-and-take.kexe
+```
 
 With Node.js and npm installed, you can also run the npm package:
 

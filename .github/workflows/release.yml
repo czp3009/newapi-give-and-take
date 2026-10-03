@@ -162,24 +162,18 @@ jobs:
           name: npm-${{ matrix.platform }}
           path: build/npm-release/*.tgz
           if-no-files-found: error
-      - name: Archive Linux/macOS executable
-        if: inputs.github && runner.os != 'Windows'
+      - name: Prepare GitHub executable
+        if: inputs.github
         shell: bash
         run: |
           mkdir -p build/github-release
-          tar -czf "build/github-release/newapi-give-and-take-${{ matrix.platform }}.tar.gz" -C "build/bin/${{ matrix.target }}/releaseExecutable" "newapi-give-and-take.${{ matrix.extension }}" -C "$GITHUB_WORKSPACE" README.md
-      - name: Archive Windows executable
-        if: inputs.github && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force build/github-release | Out-Null
-          Compress-Archive -Path build/bin/mingwX64/releaseExecutable/newapi-give-and-take.exe,README.md -DestinationPath build/github-release/newapi-give-and-take-windows-x64.zip
+          cp "build/bin/${{ matrix.target }}/releaseExecutable/newapi-give-and-take.${{ matrix.extension }}" "build/github-release/newapi-give-and-take-${{ matrix.platform }}.${{ matrix.extension }}"
       - name: Upload GitHub release assets
         if: inputs.github
         uses: actions/upload-artifact@v7
         with:
           name: github-${{ matrix.platform }}
-          path: build/github-release/*
+          path: build/github-release/newapi-give-and-take-${{ matrix.platform }}.${{ matrix.extension }}
           if-no-files-found: error
       - name: Upload Docker executable
         if: inputs.docker && runner.os == 'Linux'
