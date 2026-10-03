@@ -1,10 +1,9 @@
 package com.hiczp.newapi.giveandtake.api
 
 /**
- * A business failure reported in a 2xx response envelope with `success=false`.
+ * A new-api business failure or a response missing data required by [NewApiClient].
  *
- * Clients created by [NewApiClient.create] throw this from a response interceptor.
- * Nonblank server messages are preserved; blank messages are replaced with
- * `new-api request failed`.
+ * Clients created by [createHttpClient] throw this for 2xx envelopes with `success=false`.
+ * Nonblank server messages are preserved; blank business-error messages are replaced with `new-api request failed`.
  */
 class NewApiException(message: String) : Exception(message)

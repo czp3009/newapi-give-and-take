@@ -1,15 +1,12 @@
 ﻿package com.hiczp.newapi.giveandtake.api
 
-import de.jensklingenberg.ktorfit.http.Body
-import de.jensklingenberg.ktorfit.http.GET
-import de.jensklingenberg.ktorfit.http.POST
-import de.jensklingenberg.ktorfit.http.Query
+import de.jensklingenberg.ktorfit.http.*
 import kotlinx.serialization.json.JsonElement
 
 /**
  * Endpoints of the new-api admin API used by this tool.
  *
- * Methods return response envelopes; see [NewApiClient.create] for error handling.
+ * Methods return response envelopes; see [createHttpClient] for error handling.
  */
 interface NewApi {
     /**
@@ -50,6 +47,13 @@ interface NewApi {
         @Query("sort_order")
         sortOrder: String? = null,
     ): ApiResponse<ChannelListData>
+
+    /** Gets one channel by ID; a missing channel is reported as a business failure. */
+    @GET("api/channel/{id}")
+    suspend fun getChannel(
+        @Path("id")
+        id: Long,
+    ): ApiResponse<Channel>
 
     /**
      * Perform a user management action (admin permission required).

@@ -26,11 +26,6 @@ kotlin {
             entryPoint = mainEntryPoint
         }
     }
-    linuxArm64 {
-        binaries.executable {
-            entryPoint = mainEntryPoint
-        }
-    }
     linuxX64 {
         binaries.executable {
             entryPoint = mainEntryPoint
@@ -44,13 +39,19 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.kotlinx.cli)
             implementation(libs.ktorfit.lib)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.serialization.json.io)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlin.logging)
+            implementation(libs.kotlinx.io.core)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.cio)
+            implementation(libs.slf4j.simple)
         }
         nativeMain.dependencies {
             implementation(libs.ktor.client.curl)

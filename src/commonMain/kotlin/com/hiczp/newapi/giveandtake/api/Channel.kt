@@ -6,15 +6,14 @@ import kotlinx.serialization.Serializable
 /**
  * A channel of a new-api instance.
  *
- * Only the fields exposed by this client are declared. [NewApiClient.create]
- * configures deserialization to ignore other response fields.
+ * Only the fields exposed by this client are declared. [createHttpClient] configures deserialization to ignore other response fields.
  *
  * All declared fields are required, including the nullable [tag] and [remark].
  * A missing field fails to deserialize instead of receiving a default value.
  */
 @Serializable
 data class Channel(
-    val id: Int,
+    val id: Long,
     val name: String,
     /** Recorded consumption in integer quota units; no currency conversion is applied. */
     @SerialName("used_quota")

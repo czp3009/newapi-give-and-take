@@ -12,11 +12,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
-/**
- * Tests for channel requests, response parsing, pagination termination and
- * error propagation using [MockEngine].
- */
-class NewApiTest {
+/** Tests channel request parameters, response parsing and error propagation using [MockEngine]. */
+class NewApiTest : NewApiTestSupport() {
     /** Channel fixture with modeled fields and additional fields that the client must ignore. */
     private val fullChannel: JsonObject = buildJsonObject {
         put("id", 42)
@@ -109,7 +106,7 @@ class NewApiTest {
             )
         }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine)
 
         val data = api.listChannels(page = 1, pageSize = 100, sortBy = "id", sortOrder = "asc").data!!
 
@@ -119,7 +116,7 @@ class NewApiTest {
         assertEquals(mapOf("1" to 1L), data.typeCounts)
 
         val channel = data.items.single()
-        assertEquals(42, channel.id)
+        assertEquals(42L, channel.id)
         assertEquals("openai-main", channel.name)
         assertEquals("contributor:alice", channel.tag)
         assertEquals("由 Alice 贡献", channel.remark)
@@ -143,7 +140,7 @@ class NewApiTest {
             respondJson(channelListEnvelope(channelListData(emptyList(), total = 0, page = 2, pageSize = 50)))
         }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine)
 
         api.listChannels(
             page = 2,
@@ -169,7 +166,7 @@ class NewApiTest {
             )
         }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine)
 
         assertFailsWith<JsonConvertException> { api.listChannels(page = 1, pageSize = 100) }
     }
@@ -177,24 +174,26 @@ class NewApiTest {
     @Test
     fun testBaseUrlWithoutTrailingSlashIsNormalized() = runTest {
         val engine = MockEngine { request ->
-            assertEquals("https", request.url.protocol.name)
-            assertEquals("newapi.example.com", request.url.host)
+            assertEquals("http", request.url.protocol.name)
+            assertEquals("localhost", request.url.host)
+            assertEquals(3000, request.url.port)
             assertEquals("/api/channel/", request.url.encodedPath)
             respondJson(channelListEnvelope(channelListData(emptyList(), total = 0, page = 1, pageSize = 100)))
         }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine, baseUrl = "http://localhost:3000")
 
         api.listChannels(page = 1, pageSize = 100)
+        assertEquals(1, engine.requestHistory.size)
     }
 
     @Test
-    fun testMissingDataIsTreatedAsEmptyPage() = runTest {
+    fun testMissingDataRejectsIncompleteList() = runTest {
         val engine = MockEngine { _ -> respondJson(successResponse()) }
 
-        val client = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val client = client(engine)
 
-        assertEquals(emptyList(), client.listAllChannels())
+        assertFailsWith<NewApiException> { client.listAllChannels() }
         assertEquals(1, engine.requestHistory.size)
     }
 
@@ -209,7 +208,7 @@ class NewApiTest {
             )
         }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine)
 
         assertFailsWith<ResponseException> { api.listChannels(page = 1, pageSize = 100) }
     }
@@ -218,7 +217,7 @@ class NewApiTest {
     fun testRequestFailurePropagates() = runTest {
         val engine = MockEngine { throw IOException("connection refused") }
 
-        val api: NewApi = NewApiClient.create(NewApiConfig("https://newapi.example.com", "admin-token"), engine)
+        val api: NewApi = client(engine)
 
         val exception = assertFailsWith<IOException> { api.listChannels(page = 1, pageSize = 100) }
         assertEquals("connection refused", exception.message)

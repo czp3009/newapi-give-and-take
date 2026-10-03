@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 /** Request body of `POST /api/user/manage`; values are sent without local validation. */
 @Serializable
 data class ManageUserRequest(
-    val id: Int,
+    val id: Long,
     val action: String = MANAGE_ACTION_ADD_QUOTA,
     val mode: QuotaAdjustMode = QuotaAdjustMode.ADD,
     /** Adjustment value in integer quota units; validity is checked by the server. */

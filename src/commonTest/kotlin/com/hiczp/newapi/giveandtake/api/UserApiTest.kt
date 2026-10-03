@@ -12,12 +12,7 @@ import kotlin.test.assertTrue
 /**
  * Tests for user quota request serialization and business errors using [MockEngine].
  */
-class UserApiTest {
-    private fun client(engine: MockEngine): NewApiClient = NewApiClient.create(
-        NewApiConfig("https://newapi.example.com/", "admin-token"),
-        engine,
-    )
-
+class UserApiTest : NewApiTestSupport() {
     @Test
     fun testManageUserSendsCorrectRequest() = runTest {
         val engine = MockEngine { request ->
@@ -29,7 +24,7 @@ class UserApiTest {
 
             // Verify the request body JSON (key order insensitive).
             val expected = buildJsonObject {
-                put("id", 7)
+                put("id", Long.MAX_VALUE)
                 put("action", "add_quota")
                 put("mode", "add")
                 put("value", 500000L)
@@ -39,7 +34,7 @@ class UserApiTest {
             respondJson(successResponse())
         }
 
-        client(engine).manageUser(ManageUserRequest(id = 7, value = 500000))
+        client(engine).manageUser(ManageUserRequest(id = Long.MAX_VALUE, value = 500000))
     }
 
     @Test

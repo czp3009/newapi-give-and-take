@@ -1,10 +1,54 @@
 package com.hiczp.newapi.giveandtake.api
 
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.serialization.json.*
+import kotlin.test.AfterTest
+
+/** Owns HTTP clients and their mock engines for API tests. */
+abstract class NewApiTestSupport {
+    private val httpClients = mutableListOf<HttpClient>()
+
+    protected fun client(
+        engine: MockEngine,
+        baseUrl: String = "https://newapi.example.com",
+        accessToken: String = "admin-token",
+    ): NewApiClient {
+        val httpClient = createHttpClient(accessToken, mockEngineFactory(engine))
+        httpClients += httpClient
+        return NewApiClient.create(baseUrl, httpClient)
+    }
+
+    @AfterTest
+    fun closeHttpClients() {
+        httpClients.forEach { it.close() }
+        httpClients.clear()
+    }
+}
+
+/** Creates an offline HTTP client that owns its mock engine. */
+fun mockNewApiHttpClient(
+    accessToken: String,
+    onClosed: () -> Unit = {},
+    handler: MockRequestHandler,
+): HttpClient = createHttpClient(accessToken, mockEngineFactory(MockEngine(handler), onClosed))
+
+private fun mockEngineFactory(
+    engine: MockEngine,
+    onClosed: () -> Unit = {},
+): HttpClientEngineFactory<HttpClientEngineConfig> = object : HttpClientEngineFactory<HttpClientEngineConfig> {
+    override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine =
+        object : HttpClientEngine by engine {
+            override fun close() {
+                engine.close()
+                onClosed()
+            }
+        }
+}
 
 /** Respond with HTTP 200 and a JSON body. */
 fun MockRequestHandleScope.respondJson(content: JsonElement) = respondJson(content.toString())
@@ -32,7 +76,7 @@ fun failureResponse(message: String): JsonObject = buildJsonObject {
  * that the client must ignore.
  */
 fun newApiChannel(
-    id: Int,
+    id: Long,
     usedQuota: Long,
     tag: String? = null,
     remark: String? = null,

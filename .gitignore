@@ -8,6 +8,9 @@ gen
 **/build/
 !src/**/build/
 .kotlin/
+/config.json
+/state.json
+/state.json.tmp
 
 # Ignore Gradle GUI config
 gradle-app.setting
