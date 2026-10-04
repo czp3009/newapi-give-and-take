@@ -22,7 +22,7 @@ chmod +x newapi-give-and-take.kexe
 With Node.js and npm installed, you can also run the npm package:
 
 ```bash
-npx newapi-give-and-take --help
+npx @czp3009/newapi-give-and-take@latest --help
 ```
 
 Pass the same options as when running the executable directly. Configuration and state files still use the current

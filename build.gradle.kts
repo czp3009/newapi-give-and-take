@@ -68,10 +68,16 @@ kotlin {
 }
 
 kotlinNativeNpmPublishing {
+    packageName.set("@czp3009/newapi-give-and-take")
     description.set("Reward new-api users based on the usage of their contributed channels")
+    license.set("MIT")
     repository.set("https://github.com/czp3009/newapi-give-and-take")
+    homepage.set("https://github.com/czp3009/newapi-give-and-take")
+    keywords.addAll("new-api", "channel", "quota", "reward", "kotlin-native", "npm", "npx")
     access.set("public")
     registry.set(providers.gradleProperty("npmRegistry"))
+    otp.set(providers.gradleProperty("npmOtp"))
+
     stage {
         main {
             readme()
