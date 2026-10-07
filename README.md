@@ -1,5 +1,7 @@
 # newapi-give-and-take
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Reward users for contributing channels to a new-api instance. Users receive balance based on the usage of their
 contributed channels and can spend it through new-api.
 
